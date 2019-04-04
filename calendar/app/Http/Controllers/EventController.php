@@ -30,7 +30,7 @@ class EventController extends Controller
 
             $event = DB::table('events')->insertGetId($event);
 
-            if($event) {
+            if(isset($event)) {
                 return response(json_encode([
                     'id' => $event,
                     'status' => 200
@@ -67,7 +67,7 @@ class EventController extends Controller
 
                 $result = DB::table('events')->where($get_by, '=', $searchStr)->get();
 
-                if ($result[0])
+                if (isset($result[0]))
                     return $result;
             }
             return response('Nessuna risorsa trovata', 404);
@@ -93,7 +93,7 @@ class EventController extends Controller
                 $result[] = $event;
         }
 
-        if ($result[0]) {
+        if (isset($result[0])) {
             return $result;
         }
         else {
@@ -117,10 +117,11 @@ class EventController extends Controller
                 $result[] = $event;
         }
 
-        if ($result[0])
+        if (isset($result[0]))
             return $result;
         else
-            return response('Nessuna risorsa trovata', 404);
+            return response('Nessuna risorsa trovata', 404)
+                        ->header('Content-Type', 'text/plain');
     }
 
     /**
@@ -138,7 +139,7 @@ class EventController extends Controller
                 $result[] = $event;
         }
 
-        if ($result[0])
+        if (isset($result[0]))
             return $result;
         else
             return response('Nessuna risorsa trovata', 404);
@@ -160,7 +161,7 @@ class EventController extends Controller
                 $result[] = $event;
         }
 
-        if ($result[0])
+        if (isset($result[0]))
             return $result;
         else
             return response('Nessuna risorsa trovata', 404);
@@ -185,8 +186,8 @@ class EventController extends Controller
                     'end' => $request->input('end')
                 ], ["null", ""]));
 
-            if ($modified)
-                return ;
+            if (isset($modified))
+                return $modified;
             else
                 return abort(404);
 
@@ -204,7 +205,7 @@ class EventController extends Controller
         try {
             $deleted = DB::table('events')->delete($id);
 
-            if ($deleted)
+            if (isset($deleted))
                 return $deleted;
             else
                 return abort(404);
@@ -238,7 +239,7 @@ class EventController extends Controller
             foreach ($toDelete as $event)
                 $this->deleteEvent($event->id);
 
-            if($toDelete)
+            if(isset($toDelete))
                 return $toDelete;
             else
                 return abort(404, "Those parameters don't match any instance");
