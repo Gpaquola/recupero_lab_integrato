@@ -17,7 +17,7 @@ class EventController extends Controller
     public function createEvent(EventCreateRequest $request) {
 
         try {
-            $this->validated = $request->validated();
+            $request->validated();
 
             $event = [
                 'name' => $request->input('name'),
@@ -28,8 +28,15 @@ class EventController extends Controller
                 'created_at' => date('Y-m-d H:i:s')
             ];
 
-            DB::table('events')->insert($event);
-            return "success\n";
+            $event = DB::table('events')->insertGetId($event);
+
+            if($event) {
+                return response(json_encode([
+                    'id' => $event,
+                    'status' => 200
+                ]));
+            } else
+                return abort(404);
 
         } catch (\PDOException $e) {
             return $e->getMessage();
@@ -44,25 +51,26 @@ class EventController extends Controller
     public function getEvent() {
 
     }
+
     /**
      * @param $get_by
-     * @param Request $request
+     * @param EventGetRequest $request
      * @return \Illuminate\Support\Collection|string|void
      */
     public function getEventBy($get_by, EventGetRequest $request) {
 
         try {
-            if(array_search($get_by, ['id', 'name','note', 'priority', 'begin', 'end'])) {
+            if(array_search($get_by, ['id', 'name','note', 'priority', 'begin', 'end', 'created_at', 'updated_at'])) {
 
                 $request->validated();
                 $searchStr = $request->input($get_by);
 
                 $result = DB::table('events')->where($get_by, '=', $searchStr)->get();
 
-                if (!empty($result[0]))
+                if ($result[0])
                     return $result;
             }
-            return abort(404);
+            return response('Nessuna risorsa trovata', 404);
 
         } catch (\Exception $e) {
             echo $e->getMessage();
@@ -85,12 +93,12 @@ class EventController extends Controller
                 $result[] = $event;
         }
 
-        if (!empty($result[0])) {
+        if ($result[0]) {
             return $result;
         }
         else {
             echo $year;
-            return abort(404);
+            return response('Nessuna risorsa trovata', 404);
         }
     }
 
@@ -109,10 +117,10 @@ class EventController extends Controller
                 $result[] = $event;
         }
 
-        if (!empty($result[0]))
+        if ($result[0])
             return $result;
         else
-            return abort(404);
+            return response('Nessuna risorsa trovata', 404);
     }
 
     /**
@@ -130,10 +138,10 @@ class EventController extends Controller
                 $result[] = $event;
         }
 
-        if (!empty($result[0]))
+        if ($result[0])
             return $result;
         else
-            return abort(404);
+            return response('Nessuna risorsa trovata', 404);
     }
 
     /**
@@ -152,10 +160,10 @@ class EventController extends Controller
                 $result[] = $event;
         }
 
-        if (!empty($result[0]))
+        if ($result[0])
             return $result;
         else
-            return abort(404);
+            return response('Nessuna risorsa trovata', 404);
     }
 
     /**
@@ -177,7 +185,7 @@ class EventController extends Controller
                     'end' => $request->input('end')
                 ], ["null", ""]));
 
-            if (!empty($modified))
+            if ($modified)
                 return ;
             else
                 return abort(404);
@@ -216,6 +224,8 @@ class EventController extends Controller
     public function  deleteBy($year, $month = null, $day = null) {
 
         try {
+            $toDelete = [];
+
             if($day)
                 $toDelete = $this->getDay($year, $month, $day);
             elseif($month)
@@ -223,13 +233,15 @@ class EventController extends Controller
             elseif($year)
                 $toDelete = $this->getYear($year);
 
-            if(empty($toDelete))
-                return abort(404, "Those parameters don't match any instance");
+
 
             foreach ($toDelete as $event)
                 $this->deleteEvent($event->id);
 
-            return $toDelete;
+            if($toDelete)
+                return $toDelete;
+            else
+                return abort(404, "Those parameters don't match any instance");
 
         } catch (\Exception $e) {
             return $e->getMessage();

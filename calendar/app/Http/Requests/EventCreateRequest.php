@@ -27,7 +27,7 @@ class EventCreateRequest extends FormRequest
             'name' => 'required|string',
             'begin' => 'required|date_format:Y-m-d H:i:s',
             'note' => 'string|nullable',
-            'end' => 'date_format:Y-m-d H:i:s',
+            'end' => 'date_format:Y-m-d H:i:s|nullable',
             'priority ' => 'digits:1',
         ];
     }
