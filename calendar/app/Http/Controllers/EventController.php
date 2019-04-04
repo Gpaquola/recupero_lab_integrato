@@ -186,10 +186,10 @@ class EventController extends Controller
                     'end' => $request->input('end')
                 ], ["null", ""]));
 
-            if (isset($modified))
-                return $modified;
+            if (!empty($modified))
+                return DB::table('events')->get()->where('id', '=', $id);
             else
-                return abort(404);
+                return response('Nessuna risorsa trovata', 404);
 
         } catch (\Exception $e) {
             echo $e->getMessage();
@@ -205,10 +205,13 @@ class EventController extends Controller
         try {
             $deleted = DB::table('events')->delete($id);
 
-            if (isset($deleted))
-                return $deleted;
-            else
-                return abort(404);
+            if (!empty($deleted)) {
+                return response(json_encode([
+                    'id' => $id,
+                    'status' => 200
+                ]));
+            } else
+                return response('Nessuna risorsa trovata', 404);
 
         } catch (\Exception $e) {
             echo $e->getMessage();
